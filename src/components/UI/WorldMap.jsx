@@ -4,7 +4,7 @@ import { useGame } from '../../context/PlayerContext';
 import image from '../../assets/image.png';
 import { Plus, X, Divide, Minus, Shapes, Brain, Lock, Star, Trophy, Home } from 'lucide-react';
 
-function WorldMap() {
+function WorldMap({ onZoneSelect }) {
   const { state, dispatch } = useGame();
   const [selectedRegion, setSelectedRegion] = useState(null);
 
@@ -99,7 +99,11 @@ function WorldMap() {
 
   const enterRegion = (region) => {
     if (!region.unlocked) return;
-    
+
+    if (region.name === "Addition Alley" && onZoneSelect) {
+      onZoneSelect("Addition Alley");
+    }
+
     dispatch({ type: 'SET_CURRENT_REGION', payload: region.id });
     dispatch({ type: 'SET_GAME_STAGE', payload: 'puzzle' });
     dispatch({
@@ -121,15 +125,15 @@ function WorldMap() {
   };
 
   return (
-    <div className="relative w-full h-screen bg-no-repeat bg-contain bg-center overflow-hidden"
-    style={{ backgroundImage: `url(${image})` }}
-
+    <div
+      className="relative w-full h-screen bg-no-repeat bg-cover bg-center overflow-hidden"
+      style={{ backgroundImage: `url(${image})` }}
     >
       {/* Background Elements */}
       <div className="absolute inset-0">
         {/* Mountains */}
         <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-gray-800 to-transparent opacity-50"></div>
-        
+
         {/* Floating Islands */}
         {[...Array(8)].map((_, i) => (
           <div
@@ -166,8 +170,8 @@ function WorldMap() {
           >
             <div className={`
               w-20 h-20 rounded-full flex items-center justify-center
-              ${region.unlocked 
-                ? `bg-gradient-to-br ${region.color} hover:scale-110 shadow-lg hover:shadow-xl` 
+              ${region.unlocked
+                ? `bg-gradient-to-br ${region.color} hover:scale-110 shadow-lg hover:shadow-xl`
                 : 'bg-gray-600 cursor-not-allowed'}
               ${region.completed ? 'ring-4 ring-yellow-400' : ''}
               transition-all duration-300 relative
@@ -237,10 +241,10 @@ function WorldMap() {
               <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Lock className="w-8 h-8 text-gray-400" />
               </div>
-              
+
               <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedRegion.name}</h2>
               <p className="text-gray-600 mb-4">{selectedRegion.description}</p>
-              
+
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <p className="text-red-800 text-sm">
                   🔒 This region is locked! Complete previous regions to unlock new adventures.

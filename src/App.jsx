@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Layout from "./components/Layout/Layout";
 import WorldMap from "./components/UI/WorldMap";
 import AdditionPuzzle from "./components/Puzzles/AdditionPuzzle";
+import SubtractionPuzzle from "./components/Puzzles/SubtractionPuzzle";
 import IntroScene from "./components/Game/IntroScene";
 import { PlayerProvider, useGame } from "./context/PlayerContext";
 
@@ -9,6 +10,11 @@ function GameApp() {
   const { xp, gainXp } = useGame();
   const [currentZone, setCurrentZone] = useState(null);
   const [started, setStarted] = useState(false);
+
+  const handlePuzzleSuccess = () => {
+    gainXp(10);
+    setCurrentZone(null);
+  };
 
   return (
     <Layout>
@@ -23,12 +29,11 @@ function GameApp() {
           {!currentZone && <WorldMap onZoneSelect={setCurrentZone} />}
 
           {currentZone === "Addition Alley" && (
-            <AdditionPuzzle
-              onSuccess={() => {
-                gainXp(10);
-                setCurrentZone(null);
-              }}
-            />
+            <AdditionPuzzle onSuccess={handlePuzzleSuccess} />
+          )}
+
+          {currentZone === "Subtraction Sanctuary" && (
+            <SubtractionPuzzle onSuccess={handlePuzzleSuccess} />
           )}
         </>
       )}

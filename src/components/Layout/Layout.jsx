@@ -27,6 +27,13 @@ function Layout({ children }) {
       </div>
 
       {/* Top HUD */}
+        <div className="relative z-10 p-4 text-center bg-black/20 backdrop-blur-sm">
+        <p className="text-white/50 text-md">
+          Wizardly Whiz Quiz
+          <p>“Cast spells. Solve problems. Master math.”</p>
+        </p>
+         </div>
+      
       <div className="relative z-10 p-4 flex justify-between items-center bg-black/20 backdrop-blur-sm">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-purple-800/50 px-4 py-2 rounded-full">
@@ -40,6 +47,7 @@ function Layout({ children }) {
             <span className="text-white">{player.health}/{player.maxHealth}</span>
           </div>
         </div>
+        
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-blue-800/50 px-4 py-2 rounded-full">
@@ -53,18 +61,13 @@ function Layout({ children }) {
           </div>
         </div>
       </div>
+      
 
       {/* Main Game Area */}
       <div className="relative z-10 flex-1">
         {children}
       </div>
 
-      {/* Footer */}
-      <div className="relative z-10 p-4 text-center bg-black/20 backdrop-blur-sm">
-        <p className="text-white/60 text-sm">
-          Math Chronicles: The Kingdom of Numbers
-        </p>
-      </div>
     </div>
   );
 }

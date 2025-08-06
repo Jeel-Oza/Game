@@ -1,14 +1,14 @@
-// WorldMap.jsx
 import React, { useState } from 'react';
 import { useGame } from '../../context/PlayerContext';
-import image from '../../assets/image.png';
+import image from '../../assets/I3.png';
 import { Plus, X, Divide, Minus, Shapes, Brain, Lock, Star, Trophy, Home } from 'lucide-react';
 
 function WorldMap({ onZoneSelect }) {
-  const { state, dispatch } = useGame();
+  const { state, dispatch, xp, unlockedRegions, progress } = useGame();
   const [selectedRegion, setSelectedRegion] = useState(null);
 
-  const unlocked = state?.unlockedRegions || [];
+  const unlocked = unlockedRegions || [];
+  const completed = progress?.completedRegions || [];
 
   const regions = [
     {
@@ -17,10 +17,10 @@ function WorldMap({ onZoneSelect }) {
       description: 'Master the art of adding numbers together',
       difficulty: 1,
       icon: <Plus className="w-8 h-8" />,
-      position: { x: 20, y: 70 },
+      position: { x: 60, y: 78 },
       color: 'from-green-400 to-green-600',
       unlocked: true,
-      completed: false,
+      completed: completed.includes('addition-alley'),
       concept: 'Addition & Basic Arithmetic'
     },
     {
@@ -29,10 +29,10 @@ function WorldMap({ onZoneSelect }) {
       description: 'Learn the mysteries of taking numbers away',
       difficulty: 1,
       icon: <Minus className="w-8 h-8" />,
-      position: { x: 35, y: 60 },
+      position: { x: 45, y: 87 },
       color: 'from-blue-400 to-blue-600',
       unlocked: unlocked.includes('subtraction-sanctuary'),
-      completed: false,
+      completed: completed.includes('subtraction-sanctuary'),
       concept: 'Subtraction & Number Relationships'
     },
     {
@@ -41,10 +41,10 @@ function WorldMap({ onZoneSelect }) {
       description: 'Discover the power of repeated addition',
       difficulty: 2,
       icon: <X className="w-8 h-8" />,
-      position: { x: 50, y: 50 },
+      position: { x: 36, y: 80 },
       color: 'from-purple-400 to-purple-600',
       unlocked: unlocked.includes('multiplication-marsh'),
-      completed: false,
+      completed: completed.includes('multiplication-marsh'),
       concept: 'Times Tables & Patterns'
     },
     {
@@ -53,10 +53,10 @@ function WorldMap({ onZoneSelect }) {
       description: 'Split numbers into equal parts',
       difficulty: 2,
       icon: <Divide className="w-8 h-8" />,
-      position: { x: 65, y: 60 },
+      position: { x: 40, y: 63 },
       color: 'from-red-400 to-red-600',
       unlocked: unlocked.includes('division-domain'),
-      completed: false,
+      completed: completed.includes('division-domain'),
       concept: 'Division & Fair Sharing'
     },
     {
@@ -65,10 +65,10 @@ function WorldMap({ onZoneSelect }) {
       description: 'Explore shapes, angles, and spatial relationships',
       difficulty: 3,
       icon: <Shapes className="w-8 h-8" />,
-      position: { x: 55, y: 35 },
+      position: { x: 50, y: 68 },
       color: 'from-yellow-400 to-orange-600',
       unlocked: unlocked.includes('geometry-gorge'),
-      completed: false,
+      completed: completed.includes('geometry-gorge'),
       concept: 'Shapes & Spatial Reasoning'
     },
     {
@@ -77,10 +77,10 @@ function WorldMap({ onZoneSelect }) {
       description: 'Challenge your reasoning and problem-solving skills',
       difficulty: 4,
       icon: <Brain className="w-8 h-8" />,
-      position: { x: 70, y: 25 },
+      position: { x: 57, y: 52 },
       color: 'from-indigo-400 to-purple-600',
       unlocked: unlocked.includes('logic-labyrinth'),
-      completed: false,
+      completed: completed.includes('logic-labyrinth'),
       concept: 'Logic & Critical Thinking'
     },
     {
@@ -89,7 +89,7 @@ function WorldMap({ onZoneSelect }) {
       description: 'Return to your base of knowledge',
       difficulty: 0,
       icon: <Home className="w-8 h-8" />,
-      position: { x: 85, y: 20 },
+      position: { x: 70, y: 40 },
       color: 'from-gray-400 to-gray-600',
       unlocked: true,
       completed: false,
@@ -100,17 +100,20 @@ function WorldMap({ onZoneSelect }) {
   const enterRegion = (region) => {
     if (!region.unlocked) return;
 
-    if (region.name === "Addition Alley" && onZoneSelect) {
-      onZoneSelect("Addition Alley");
+    // Handle specific region routing
+    if (onZoneSelect) {
+      onZoneSelect(region.name);
     }
 
+    // Update game state
     dispatch({ type: 'SET_CURRENT_REGION', payload: region.id });
     dispatch({ type: 'SET_GAME_STAGE', payload: 'puzzle' });
     dispatch({
       type: 'UPDATE_GUIDE',
       payload: {
         currentMessage: `Welcome to ${region.name}! Let's start with some ${region.concept.toLowerCase()} challenges.`,
-        mood: 'excited'
+        mood: 'excited',
+        isVisible: true
       }
     });
   };
@@ -126,7 +129,7 @@ function WorldMap({ onZoneSelect }) {
 
   return (
     <div
-      className="relative w-full h-screen bg-no-repeat bg-cover bg-center overflow-hidden"
+      className="relative w-full h-screen bg-no-repeat bg-contain bg-center overflow-hidden"
       style={{ backgroundImage: `url(${image})` }}
     >
       {/* Background Elements */}
@@ -138,14 +141,14 @@ function WorldMap({ onZoneSelect }) {
         {[...Array(8)].map((_, i) => (
           <div
             key={i}
-            className="absolute bg-green-800/30 rounded-full opacity-60"
+            className="absolute bg-green-800/30 rounded-full opacity-60 animate-pulse"
             style={{
               width: Math.random() * 100 + 50 + 'px',
               height: Math.random() * 50 + 25 + 'px',
               left: Math.random() * 80 + 10 + '%',
               top: Math.random() * 60 + 20 + '%',
-              animation: `float ${8 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: Math.random() * 2 + 's'
+              animationDelay: Math.random() * 2 + 's',
+              animationDuration: (8 + Math.random() * 4) + 's'
             }}
           />
         ))}
@@ -157,6 +160,7 @@ function WorldMap({ onZoneSelect }) {
           Kingdom of Numeria
         </h1>
         <p className="text-white/80 text-lg">Choose your mathematical adventure</p>
+        <div className="text-white/60 text-sm mt-2">XP: {xp} | Level: {Math.floor(xp / 100) + 1}</div>
       </div>
 
       {/* Regions */}
@@ -209,6 +213,11 @@ function WorldMap({ onZoneSelect }) {
                   <div className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
                     {region.concept}
                   </div>
+                  {region.completed && (
+                    <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full mt-2">
+                      ✅ Completed
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -216,14 +225,14 @@ function WorldMap({ onZoneSelect }) {
         ))}
       </div>
 
-      {/* Sequential Paths */}
+      {/* Sequential Paths - Updated to match new positions */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-        <path d="M 20% 70% Q 28% 65% 35% 60%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-        <path d="M 35% 60% Q 42% 55% 50% 50%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-        <path d="M 50% 50% Q 58% 55% 65% 60%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-        <path d="M 65% 60% Q 60% 45% 55% 35%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-        <path d="M 55% 35% Q 62% 30% 70% 25%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-        <path d="M 70% 25% Q 77% 22% 85% 20%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
+        <path d="M 60% 78% Q 52% 82% 45% 87%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
+        <path d="M 45% 87% Q 40% 84% 36% 80%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
+        <path d="M 36% 80% Q 38% 72% 40% 63%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
+        <path d="M 40% 63% Q 45% 65% 50% 68%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
+        <path d="M 50% 68% Q 54% 60% 57% 52%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
+        <path d="M 57% 52% Q 63% 46% 70% 40%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
       </svg>
 
       {/* Locked Region Modal */}
@@ -254,13 +263,6 @@ function WorldMap({ onZoneSelect }) {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-      `}</style>
     </div>
   );
 }

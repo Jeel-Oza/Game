@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useGame } from "../../context/PlayerContext";
 
-export default function AdditionPuzzle({ onSuccess }) {
+export default function MultiplicationPuzzle({ onSuccess }) {
   const { state, dispatch } = useGame();
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
@@ -15,8 +15,11 @@ export default function AdditionPuzzle({ onSuccess }) {
   }, []);
 
   const generateNewQuestion = () => {
-    setNum1(Math.floor(Math.random() * 10));
-    setNum2(Math.floor(Math.random() * 10));
+    let a = Math.floor(Math.random() * 10);
+    let b = Math.floor(Math.random() * 10);
+
+    setNum1(a);
+    setNum2(b);
     setAnswer("");
     setFeedback(null);
   };
@@ -24,7 +27,7 @@ export default function AdditionPuzzle({ onSuccess }) {
   const handleSubmit = () => {
     if (answer === "") return;
 
-    const isCorrect = parseInt(answer) === num1 + num2;
+    const isCorrect = parseInt(answer) === num1 * num2;
 
     if (isCorrect) {
       setFeedback("correct");
@@ -35,27 +38,26 @@ export default function AdditionPuzzle({ onSuccess }) {
           setQuestionCount((prev) => prev + 1);
           generateNewQuestion();
         } else {
-          // Mark region completed & unlock next, then bubble up
+          // Mark region completed & unlock next
           dispatch({
             type: "SOLVE_PUZZLE",
-            payload: state?.currentRegion || "addition-alley",
+            payload: state?.currentRegion || "multiplication-marsh",
           });
-          onSuccess && onSuccess(); // All 10 questions complete
+          onSuccess && onSuccess();
         }
-      }, 1000); // move to next after short delay
+      }, 1000);
     } else {
       setFeedback("wrong");
     }
   };
 
-  // Progress bar width
   const progressWidth = `${(questionCount - 1) * 10}%`;
 
   return (
     <div className="max-w-xl mx-auto bg-white rounded-xl shadow-md p-6 mt-10 space-y-6 text-center">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <div className="text-xl font-bold">Addition Level</div>
+        <div className="text-xl font-bold">Multiplication Level</div>
         <div className="text-sm text-purple-600 font-semibold">Score: {score}</div>
       </div>
 
@@ -72,12 +74,12 @@ export default function AdditionPuzzle({ onSuccess }) {
 
       {/* Prompt */}
       <div className="text-lg font-semibold text-blue-700">
-        Solve the addition to continue!
+        Solve the multiplication to continue!
       </div>
 
       {/* Question */}
       <div className="text-2xl font-bold">
-        What is {num1} + {num2}?
+        What is {num1} × {num2}?
       </div>
 
       {/* Input */}

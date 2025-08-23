@@ -198,7 +198,7 @@ function WorldMap({ onZoneSelect }) {
             </div>
 
             {region.unlocked && (
-              <div className="absolute bottom-full mb-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+              <div className="absolute bottom-full mb-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-99">
                 <div className="bg-white rounded-lg p-4 shadow-xl min-w-64 border-2 border-purple-200">
                   <h3 className="font-bold text-purple-800 mb-2">{region.name}</h3>
                   <p className="text-gray-600 text-sm mb-2">{region.description}</p>

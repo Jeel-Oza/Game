@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/PlayerContext';
 import { ArrowLeft, Clock, Target, Zap, CheckCircle, XCircle } from 'lucide-react';
 
 function PuzzleInterface() {
@@ -64,6 +64,11 @@ function PuzzleInterface() {
   useEffect(() => {
     // Generate first puzzle
     setCurrentPuzzle(generatePuzzle());
+    // reset per-region UI
+    setUserAnswer('');
+    setFeedback(null);
+    setTimeLeft(30);
+    setStreak(0);
   }, [state.currentRegion]);
 
   useEffect(() => {
@@ -104,8 +109,9 @@ function PuzzleInterface() {
       setStreak(streak + 1);
       
       dispatch({ type: 'GAIN_XP', payload: pointsEarned });
-      dispatch({ type: 'COMPLETE_PUZZLE' });
-      
+      // ⬇️ mark this region as completed & unlock the next one
+      dispatch({ type: 'SOLVE_PUZZLE', payload: state.currentRegion });
+
       setFeedback({
         correct: true,
         message: `Excellent! You earned ${pointsEarned} points!`,

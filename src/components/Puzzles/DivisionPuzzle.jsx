@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useGame } from "../../context/PlayerContext";
 
-export default function AdditionPuzzle({ onSuccess }) {
+export default function DivisionPuzzle({ onSuccess }) {
   const { state, dispatch } = useGame();
   const [num1, setNum1] = useState(0);
-  const [num2, setNum2] = useState(0);
+  const [num2, setNum2] = useState(1); // avoid division by zero
   const [answer, setAnswer] = useState("");
-  const [feedback, setFeedback] = useState(null); // "correct" or "wrong"
+  const [feedback, setFeedback] = useState(null);
   const [questionCount, setQuestionCount] = useState(1);
   const [score, setScore] = useState(0);
 
@@ -15,8 +15,12 @@ export default function AdditionPuzzle({ onSuccess }) {
   }, []);
 
   const generateNewQuestion = () => {
-    setNum1(Math.floor(Math.random() * 10));
-    setNum2(Math.floor(Math.random() * 10));
+    let divisor = Math.floor(Math.random() * 9) + 1; // 1–9
+    let quotient = Math.floor(Math.random() * 10); // 0–9
+    let dividend = divisor * quotient;
+
+    setNum1(dividend);
+    setNum2(divisor);
     setAnswer("");
     setFeedback(null);
   };
@@ -24,7 +28,7 @@ export default function AdditionPuzzle({ onSuccess }) {
   const handleSubmit = () => {
     if (answer === "") return;
 
-    const isCorrect = parseInt(answer) === num1 + num2;
+    const isCorrect = parseInt(answer) === num1 / num2;
 
     if (isCorrect) {
       setFeedback("correct");
@@ -35,27 +39,25 @@ export default function AdditionPuzzle({ onSuccess }) {
           setQuestionCount((prev) => prev + 1);
           generateNewQuestion();
         } else {
-          // Mark region completed & unlock next, then bubble up
           dispatch({
             type: "SOLVE_PUZZLE",
-            payload: state?.currentRegion || "addition-alley",
+            payload: state?.currentRegion || "division-domain",
           });
-          onSuccess && onSuccess(); // All 10 questions complete
+          onSuccess && onSuccess();
         }
-      }, 1000); // move to next after short delay
+      }, 1000);
     } else {
       setFeedback("wrong");
     }
   };
 
-  // Progress bar width
   const progressWidth = `${(questionCount - 1) * 10}%`;
 
   return (
     <div className="max-w-xl mx-auto bg-white rounded-xl shadow-md p-6 mt-10 space-y-6 text-center">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <div className="text-xl font-bold">Addition Level</div>
+        <div className="text-xl font-bold">Division Level</div>
         <div className="text-sm text-purple-600 font-semibold">Score: {score}</div>
       </div>
 
@@ -72,12 +74,12 @@ export default function AdditionPuzzle({ onSuccess }) {
 
       {/* Prompt */}
       <div className="text-lg font-semibold text-blue-700">
-        Solve the addition to continue!
+        Solve the division to continue!
       </div>
 
       {/* Question */}
       <div className="text-2xl font-bold">
-        What is {num1} + {num2}?
+        What is {num1} ÷ {num2}?
       </div>
 
       {/* Input */}

@@ -26,10 +26,9 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'GAIN_XP':
+    case 'GAIN_XP': {
       const newXp = state.player.xp + action.payload;
       const newLevel = Math.floor(newXp / 100) + 1; // Level up every 100 XP
-      
       return {
         ...state,
         player: {
@@ -38,8 +37,9 @@ const reducer = (state, action) => {
           level: Math.max(state.player.level, newLevel),
         },
       };
+    }
 
-    case 'UPDATE_HEALTH':
+    case 'UPDATE_HEALTH': {
       const newHealth = Math.min(
         state.player.maxHealth,
         Math.max(0, state.player.health + action.payload)
@@ -51,12 +51,13 @@ const reducer = (state, action) => {
           health: newHealth,
         },
       };
+    }
 
     case 'SOLVE_PUZZLE': {
       const regionId = action.payload;
       const nextUnlocked = new Set(state.unlockedRegions);
       const completedRegions = new Set(state.progress.completedRegions);
-      
+
       // Mark current region as completed
       if (regionId) {
         completedRegions.add(regionId);
@@ -84,7 +85,10 @@ const reducer = (state, action) => {
         player: {
           ...state.player,
           xp: state.player.xp + 10,
-          level: Math.max(state.player.level, Math.floor((state.player.xp + 10) / 100) + 1),
+          level: Math.max(
+            state.player.level,
+            Math.floor((state.player.xp + 10) / 100) + 1
+          ),
         },
         unlockedRegions: Array.from(nextUnlocked),
       };
@@ -96,7 +100,10 @@ const reducer = (state, action) => {
         guide: { 
           ...state.guide, 
           ...action.payload,
-          isVisible: action.payload.isVisible !== undefined ? action.payload.isVisible : state.guide.isVisible
+          isVisible:
+            action.payload.isVisible !== undefined
+              ? action.payload.isVisible
+              : state.guide.isVisible,
         },
       };
 
@@ -151,7 +158,8 @@ export const PlayerProvider = ({ children }) => {
   };
 
   const solvePuzzle = (regionId) => {
-    dispatch({ type: 'SOLVE_PUZZLE', payload: regionId });
+    // prefer explicit id; fall back to currentRegion
+    dispatch({ type: 'SOLVE_PUZZLE', payload: regionId || state.currentRegion });
   };
 
   const updateGuide = (guideData) => {
@@ -170,7 +178,6 @@ export const PlayerProvider = ({ children }) => {
     dispatch({ type: 'RESET_GAME' });
   };
 
-  // Check if context is being used outside of provider
   if (!state) {
     throw new Error('useGame must be used within a PlayerProvider');
   }
@@ -206,10 +213,8 @@ export const PlayerProvider = ({ children }) => {
 
 export const useGame = () => {
   const context = useContext(PlayerContext);
-  
   if (!context) {
     throw new Error('useGame must be used within a PlayerProvider');
   }
-  
   return context;
 };

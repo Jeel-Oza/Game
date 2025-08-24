@@ -10,6 +10,19 @@ function WorldMap({ onZoneSelect }) {
   const unlocked = unlockedRegions || [];
   const completed = progress?.completedRegions || [];
 
+  // At the top of WorldMap.jsx (inside the component)
+const mainRegionIds = [
+  'addition-alley',
+  'subtraction-sanctuary',
+  'multiplication-marsh',
+  'division-domain',
+  'geometry-gorge',
+  'logic-labyrinth'
+];
+
+const allCompleted = mainRegionIds.every((id) => completed.includes(id));
+
+
   const regions = [
     {
       id: 'addition-alley',
@@ -19,7 +32,7 @@ function WorldMap({ onZoneSelect }) {
       icon: <Plus className="w-8 h-8" />,
       position: { x: 60, y: 78 },
       color: 'from-green-400 to-green-600',
-      unlocked: true,
+      unlocked: true, // Always unlocked as first region
       completed: completed.includes('addition-alley'),
       concept: 'Addition & Basic Arithmetic'
     },
@@ -43,7 +56,7 @@ function WorldMap({ onZoneSelect }) {
       icon: <X className="w-8 h-8" />,
       position: { x: 36, y: 80 },
       color: 'from-purple-400 to-purple-600',
-      unlocked: unlocked.includes('multiplication-marsh'),
+      unlocked: unlocked.includes('multiplication-marsh'), // 🔑 Controlled by PlayerContext
       completed: completed.includes('multiplication-marsh'),
       concept: 'Times Tables & Patterns'
     },
@@ -91,21 +104,21 @@ function WorldMap({ onZoneSelect }) {
       icon: <Home className="w-8 h-8" />,
       position: { x: 70, y: 40 },
       color: 'from-gray-400 to-gray-600',
-      unlocked: true,
+      unlocked: allCompleted,
       completed: false,
       concept: 'Mission Complete'
     }
   ];
 
   const enterRegion = (region) => {
+    console.log('🔍 WorldMap: Entering region:', region.id, region.name); // DEBUG
+    
     if (!region.unlocked) return;
 
-    // Handle specific region routing
     if (onZoneSelect) {
       onZoneSelect(region.name);
     }
 
-    // Update game state
     dispatch({ type: 'SET_CURRENT_REGION', payload: region.id });
     dispatch({ type: 'SET_GAME_STAGE', payload: 'puzzle' });
     dispatch({
@@ -132,35 +145,12 @@ function WorldMap({ onZoneSelect }) {
       className="relative w-full h-screen bg-no-repeat bg-contain bg-center overflow-hidden"
       style={{ backgroundImage: `url(${image})` }}
     >
-      {/* Background Elements */}
-      <div className="absolute inset-0">
-        {/* Mountains */}
-        <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-gray-800 to-transparent opacity-50"></div>
-
-        {/* Floating Islands */}
-        {[...Array(8)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute bg-green-800/30 rounded-full opacity-60 animate-pulse"
-            style={{
-              width: Math.random() * 100 + 50 + 'px',
-              height: Math.random() * 50 + 25 + 'px',
-              left: Math.random() * 80 + 10 + '%',
-              top: Math.random() * 60 + 20 + '%',
-              animationDelay: Math.random() * 2 + 's',
-              animationDuration: (8 + Math.random() * 4) + 's'
-            }}
-          />
-        ))}
-      </div>
-
       {/* Title */}
       <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center z-10">
         <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
           Kingdom of Numeria
         </h1>
         <p className="text-white/80 text-lg">Choose your mathematical adventure</p>
-        <div className="text-white/60 text-sm mt-2">XP: {xp} | Level: {Math.floor(xp / 100) + 1}</div>
       </div>
 
       {/* Regions */}
@@ -196,44 +186,9 @@ function WorldMap({ onZoneSelect }) {
                 <p className="text-white font-semibold text-sm">{region.name}</p>
               </div>
             </div>
-
-            {region.unlocked && (
-              <div className="absolute bottom-full mb-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-99">
-                <div className="bg-white rounded-lg p-4 shadow-xl min-w-64 border-2 border-purple-200">
-                  <h3 className="font-bold text-purple-800 mb-2">{region.name}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{region.description}</p>
-                  {region.difficulty > 0 && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs text-gray-500">Difficulty:</span>
-                      <div className="flex gap-1">
-                        {getDifficultyStars(region.difficulty)}
-                      </div>
-                    </div>
-                  )}
-                  <div className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
-                    {region.concept}
-                  </div>
-                  {region.completed && (
-                    <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full mt-2">
-                      ✅ Completed
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         ))}
       </div>
-
-      {/* Sequential Paths - Updated to match new positions */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-        <path d="M 60% 78% Q 52% 82% 45% 87%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-        <path d="M 45% 87% Q 40% 84% 36% 80%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-        <path d="M 36% 80% Q 38% 72% 40% 63%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-        <path d="M 40% 63% Q 45% 65% 50% 68%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-        <path d="M 50% 68% Q 54% 60% 57% 52%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-        <path d="M 57% 52% Q 63% 46% 70% 40%" stroke="white" strokeWidth="3" fill="none" strokeDasharray="10,5" className="animate-pulse" />
-      </svg>
 
       {/* Locked Region Modal */}
       {selectedRegion && !selectedRegion.unlocked && (
@@ -245,15 +200,12 @@ function WorldMap({ onZoneSelect }) {
             >
               <X className="w-6 h-6" />
             </button>
-
             <div className="text-center">
               <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Lock className="w-8 h-8 text-gray-400" />
               </div>
-
               <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedRegion.name}</h2>
               <p className="text-gray-600 mb-4">{selectedRegion.description}</p>
-
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <p className="text-red-800 text-sm">
                   🔒 This region is locked! Complete previous regions to unlock new adventures.

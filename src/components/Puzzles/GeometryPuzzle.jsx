@@ -1,80 +1,76 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useGame } from "../../context/PlayerContext";
 
-export default function SubtractionPuzzle({ onSuccess }) {
+const geometryQuestions = [
+  { q: "A triangle has angles 40° and 70°. What is the third angle?", a: "70" },
+  { q: "A square has side length 5. What is its area?", a: "25" },
+  { q: "A circle has radius 7. What is its diameter?", a: "14" },
+  { q: "A rectangle has length 12 and width 4. What is its perimeter?", a: "32" },
+  { q: "A cube has side 3. What is its volume?", a: "27" },
+  { q: "A right angle is?", a: "90" },
+  { q: "How many sides does a hexagon have?", a: "6" },
+  { q: "What is the perimeter of a square with side 8?", a: "32" },
+  { q: "How many degrees in a straight line?", a: "180" },
+  { q: "Area of rectangle 10 × 5?", a: "50" },
+];
+
+export default function GeometryPuzzle({ onSuccess }) {
   const { state, dispatch } = useGame();
-  const [num1, setNum1] = useState(0);
-  const [num2, setNum2] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswer] = useState("");
-  const [feedback, setFeedback] = useState(null); // "correct" or "wrong"
-  const [questionCount, setQuestionCount] = useState(1);
+  const [feedback, setFeedback] = useState(null);
   const [score, setScore] = useState(0);
 
-  // constants for XP/Health
+  // ✅ XP/Health system
   const XP_PER_CORRECT = 10;
-  const HEALTH_REWARD_CORRECT = 2;   // small heal
-  const HEALTH_PENALTY_WRONG = -10;  // lose hearts
+  const HEALTH_REWARD_CORRECT = 2;
+  const HEALTH_PENALTY_WRONG = -10;
 
-  useEffect(() => {
-    generateNewQuestion();
-  }, []);
-
-  const generateNewQuestion = () => {
-    let a = Math.floor(Math.random() * 10);
-    let b = Math.floor(Math.random() * 10);
-
-    // ensure non-negative results (so num1 >= num2)
-    if (b > a) [a, b] = [b, a];
-
-    setNum1(a);
-    setNum2(b);
-    setAnswer("");
-    setFeedback(null);
-  };
+  const currentQ = geometryQuestions[currentIndex];
 
   const handleSubmit = (e) => {
-    if (e) e.preventDefault(); // prevent page reload
+    e.preventDefault();
     if (answer === "") return;
 
-    const isCorrect = parseInt(answer, 10) === num1 - num2;
+    const isCorrect = answer.trim() === currentQ.a;
 
     if (isCorrect) {
       setFeedback("correct");
-      setScore((prev) => prev + 10);
+      setScore((prev) => prev + XP_PER_CORRECT);
 
-      // ✅ live update XP + health
+      // ✅ Reward XP & health
       dispatch({ type: "GAIN_XP", payload: XP_PER_CORRECT });
       dispatch({ type: "UPDATE_HEALTH", payload: HEALTH_REWARD_CORRECT });
 
       setTimeout(() => {
-        if (questionCount < 10) {
-          setQuestionCount((prev) => prev + 1);
-          generateNewQuestion();
+        if (currentIndex < geometryQuestions.length - 1) {
+          setCurrentIndex((prev) => prev + 1);
+          setAnswer("");
+          setFeedback(null);
         } else {
-          // Mark region completed & unlock next, then bubble up
+          // ✅ Puzzle completion
           dispatch({
             type: "SOLVE_PUZZLE",
-            payload: state?.currentRegion || "subtraction-sanctuary",
+            payload: state?.currentRegion || "geometry-gorge",
           });
-          onSuccess && onSuccess(); // All 10 questions complete
+          onSuccess && onSuccess();
         }
-      }, 800); // short delay so "Correct!" is visible
+      }, 800);
     } else {
       setFeedback("wrong");
 
-      // ❌ wrong → lose health
+      // ❌ Wrong answer → health penalty
       dispatch({ type: "UPDATE_HEALTH", payload: HEALTH_PENALTY_WRONG });
     }
   };
 
-  // Progress bar width
-  const progressWidth = `${(questionCount - 1) * 10}%`;
+  const progressWidth = `${((currentIndex + 1) / geometryQuestions.length) * 100}%`;
 
   return (
     <div className="max-w-xl mx-auto bg-white rounded-xl shadow-md p-6 mt-10 space-y-6 text-center">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <div className="text-xl font-bold">Subtraction Level</div>
+        <div className="text-xl font-bold">Geometry Puzzle</div>
         <div className="text-sm text-purple-600 font-semibold">Score: {score}</div>
       </div>
 
@@ -86,29 +82,25 @@ export default function SubtractionPuzzle({ onSuccess }) {
         />
       </div>
       <div className="text-sm text-gray-500">
-        {questionCount <= 10 ? `${questionCount} of 10 levels completed` : "Completed"}
+        {currentIndex + 1} of {geometryQuestions.length} levels completed
       </div>
 
-      {/* Prompt */}
       <div className="text-lg font-semibold text-blue-700">
-        Solve the subtraction to continue!
+        Solve the geometry problem!
       </div>
 
       {/* Question */}
-      <div className="text-2xl font-bold">
-        What is {num1} - {num2}?
-      </div>
+      <div className="text-2xl font-bold">{currentQ.q}</div>
 
-      {/* Input + Submit inside form so Enter works */}
+      {/* Input */}
       <form onSubmit={handleSubmit} className="space-y-3">
         <input
-          className="border-2 border-gray-300 p-2 rounded text-center w-24 text-lg"
+          className="border-2 border-gray-300 p-2 rounded text-center w-32 text-lg"
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
-          type="number"
+          type="text"
           placeholder="Answer"
         />
-
         <div>
           <button
             type="submit"
@@ -128,7 +120,6 @@ export default function SubtractionPuzzle({ onSuccess }) {
         <div className="text-red-600 font-semibold text-lg">❌ Wrong! Try again.</div>
       )}
 
-      {/* Footer */}
       <div className="text-sm text-gray-500 mt-4">
         Only correct answers move you forward.
       </div>

@@ -20,7 +20,7 @@ export default function IntroScene({ onContinue }) {
   };
 
   return (
-    <div className="flex flex-col items-center space-y-4 p-6">
+    <div className="flex flex-col items-center space-y-4 p-2 mt-20">
 
     {/* <video autoPlay muted loop playsInline className="w-32 object-contain">
       <source src={sampleVideo} type="video/webm" />

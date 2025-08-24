@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer } from 'react';
+import { createContext, useContext, useReducer, useEffect } from 'react';
 
 const PlayerContext = createContext();
 
@@ -27,14 +27,21 @@ const initialState = {
 const reducer = (state, action) => {
   switch (action.type) {
     case 'GAIN_XP': {
-      const newXp = state.player.xp + action.payload;
-      const newLevel = Math.floor(newXp / 100) + 1; // Level up every 100 XP
+      let newXp = state.player.xp + action.payload;
+      let newLevel = state.player.level;
+
+      // Level up every 100 XP
+      if (newXp >= 100) {
+        newLevel += Math.floor(newXp / 100);
+        newXp = newXp % 100;
+      }
+
       return {
         ...state,
         player: {
           ...state.player,
           xp: newXp,
-          level: Math.max(state.player.level, newLevel),
+          level: newLevel,
         },
       };
     }
@@ -58,22 +65,23 @@ const reducer = (state, action) => {
       const nextUnlocked = new Set(state.unlockedRegions);
       const completedRegions = new Set(state.progress.completedRegions);
 
-      // Mark current region as completed
       if (regionId) {
         completedRegions.add(regionId);
       }
 
-      // Unlock next regions based on completion
-      if (regionId === 'addition-alley') {
-        nextUnlocked.add('subtraction-sanctuary');
-      } else if (regionId === 'subtraction-sanctuary') {
-        nextUnlocked.add('multiplication-marsh');
-      } else if (regionId === 'multiplication-marsh') {
-        nextUnlocked.add('division-domain');
-      } else if (regionId === 'division-domain') {
-        nextUnlocked.add('geometry-gorge');
-      } else if (regionId === 'geometry-gorge') {
-        nextUnlocked.add('logic-labyrinth');
+      // Unlock progression
+      if (regionId === 'addition-alley') nextUnlocked.add('subtraction-sanctuary');
+      else if (regionId === 'subtraction-sanctuary') nextUnlocked.add('multiplication-marsh');
+      else if (regionId === 'multiplication-marsh') nextUnlocked.add('division-domain');
+      else if (regionId === 'division-domain') nextUnlocked.add('geometry-gorge');
+      else if (regionId === 'geometry-gorge') nextUnlocked.add('logic-labyrinth');
+
+      // Add XP for puzzle
+      let newXp = state.player.xp + 10;
+      let newLevel = state.player.level;
+      if (newXp >= 100) {
+        newLevel += Math.floor(newXp / 100);
+        newXp = newXp % 100;
       }
 
       return {
@@ -84,11 +92,8 @@ const reducer = (state, action) => {
         },
         player: {
           ...state.player,
-          xp: state.player.xp + 10,
-          level: Math.max(
-            state.player.level,
-            Math.floor((state.player.xp + 10) / 100) + 1
-          ),
+          xp: newXp,
+          level: newLevel,
         },
         unlockedRegions: Array.from(nextUnlocked),
       };
@@ -97,8 +102,8 @@ const reducer = (state, action) => {
     case 'UPDATE_GUIDE':
       return {
         ...state,
-        guide: { 
-          ...state.guide, 
+        guide: {
+          ...state.guide,
           ...action.payload,
           isVisible:
             action.payload.isVisible !== undefined
@@ -108,16 +113,10 @@ const reducer = (state, action) => {
       };
 
     case 'SET_GAME_STAGE':
-      return {
-        ...state,
-        gameStage: action.payload,
-      };
+      return { ...state, gameStage: action.payload };
 
     case 'SET_CURRENT_REGION':
-      return {
-        ...state,
-        currentRegion: action.payload,
-      };
+      return { ...state, currentRegion: action.payload };
 
     case 'RESET_GAME':
       return initialState;
@@ -139,26 +138,31 @@ const reducer = (state, action) => {
 };
 
 export const PlayerProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(
+    reducer,
+    initialState,
+    (init) => {
+      const saved = localStorage.getItem('playerState');
+      return saved ? JSON.parse(saved) : init;
+    }
+  );
+
+  // Persist state
+  useEffect(() => {
+    localStorage.setItem('playerState', JSON.stringify(state));
+  }, [state]);
 
   const gainXp = (amount) => {
-    if (typeof amount !== 'number' || amount < 0) {
-      console.warn('Invalid XP amount:', amount);
-      return;
-    }
+    if (typeof amount !== 'number' || amount < 0) return;
     dispatch({ type: 'GAIN_XP', payload: amount });
   };
 
   const updateHealth = (amount) => {
-    if (typeof amount !== 'number') {
-      console.warn('Invalid health amount:', amount);
-      return;
-    }
+    if (typeof amount !== 'number') return;
     dispatch({ type: 'UPDATE_HEALTH', payload: amount });
   };
 
   const solvePuzzle = (regionId) => {
-    // prefer explicit id; fall back to currentRegion
     dispatch({ type: 'SOLVE_PUZZLE', payload: regionId || state.currentRegion });
   };
 
@@ -176,16 +180,12 @@ export const PlayerProvider = ({ children }) => {
 
   const resetGame = () => {
     dispatch({ type: 'RESET_GAME' });
+    localStorage.removeItem('playerState');
   };
-
-  if (!state) {
-    throw new Error('useGame must be used within a PlayerProvider');
-  }
 
   return (
     <PlayerContext.Provider
       value={{
-        // State values
         state,
         xp: state.player.xp,
         player: state.player,
@@ -194,8 +194,6 @@ export const PlayerProvider = ({ children }) => {
         gameStage: state.gameStage,
         currentRegion: state.currentRegion,
         unlockedRegions: state.unlockedRegions,
-        
-        // Action functions
         dispatch,
         gainXp,
         updateHealth,

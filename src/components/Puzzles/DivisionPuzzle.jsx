@@ -10,13 +10,18 @@ export default function DivisionPuzzle({ onSuccess }) {
   const [questionCount, setQuestionCount] = useState(1);
   const [score, setScore] = useState(0);
 
+  // constants for XP/Health
+  const XP_PER_CORRECT = 10;
+  const HEALTH_REWARD_CORRECT = 2;   // heal a little
+  const HEALTH_PENALTY_WRONG = -10;  // lose hearts
+
   useEffect(() => {
     generateNewQuestion();
   }, []);
 
   const generateNewQuestion = () => {
     let divisor = Math.floor(Math.random() * 9) + 1; // 1–9
-    let quotient = Math.floor(Math.random() * 10); // 0–9
+    let quotient = Math.floor(Math.random() * 10);   // 0–9
     let dividend = divisor * quotient;
 
     setNum1(dividend);
@@ -25,29 +30,38 @@ export default function DivisionPuzzle({ onSuccess }) {
     setFeedback(null);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault(); // prevent reload
     if (answer === "") return;
 
-    const isCorrect = parseInt(answer) === num1 / num2;
+    const isCorrect = parseInt(answer, 10) === num1 / num2;
 
     if (isCorrect) {
       setFeedback("correct");
       setScore((prev) => prev + 10);
+
+      // ✅ Update XP + health in global state
+      dispatch({ type: "GAIN_XP", payload: XP_PER_CORRECT });
+      dispatch({ type: "UPDATE_HEALTH", payload: HEALTH_REWARD_CORRECT });
 
       setTimeout(() => {
         if (questionCount < 10) {
           setQuestionCount((prev) => prev + 1);
           generateNewQuestion();
         } else {
+          // Mark puzzle complete
           dispatch({
             type: "SOLVE_PUZZLE",
             payload: state?.currentRegion || "division-domain",
           });
           onSuccess && onSuccess();
         }
-      }, 1000);
+      }, 800); // short delay to show feedback
     } else {
       setFeedback("wrong");
+
+      // ❌ wrong → lose health
+      dispatch({ type: "UPDATE_HEALTH", payload: HEALTH_PENALTY_WRONG });
     }
   };
 
@@ -82,25 +96,26 @@ export default function DivisionPuzzle({ onSuccess }) {
         What is {num1} ÷ {num2}?
       </div>
 
-      {/* Input */}
-      <input
-        className="border-2 border-gray-300 p-2 rounded text-center w-24 text-lg"
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        type="number"
-        placeholder="Answer"
-      />
+      {/* Input + Submit */}
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <input
+          className="border-2 border-gray-300 p-2 rounded text-center w-24 text-lg"
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
+          type="number"
+          placeholder="Answer"
+        />
 
-      {/* Submit Button */}
-      <div>
-        <button
-          onClick={handleSubmit}
-          className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded disabled:bg-gray-400"
-          disabled={answer === ""}
-        >
-          Submit
-        </button>
-      </div>
+        <div>
+          <button
+            type="submit"
+            className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded disabled:bg-gray-400"
+            disabled={answer === ""}
+          >
+            Submit
+          </button>
+        </div>
+      </form>
 
       {/* Feedback */}
       {feedback === "correct" && (

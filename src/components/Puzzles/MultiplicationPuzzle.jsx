@@ -10,6 +10,11 @@ export default function MultiplicationPuzzle({ onSuccess }) {
   const [questionCount, setQuestionCount] = useState(1);
   const [score, setScore] = useState(0);
 
+  // constants for XP/Health
+  const XP_PER_CORRECT = 10;
+  const HEALTH_REWARD_CORRECT = 2;   // heal a bit
+  const HEALTH_PENALTY_WRONG = -10;  // lose hearts
+
   useEffect(() => {
     generateNewQuestion();
   }, []);
@@ -24,14 +29,19 @@ export default function MultiplicationPuzzle({ onSuccess }) {
     setFeedback(null);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault(); // prevent page reload
     if (answer === "") return;
 
-    const isCorrect = parseInt(answer) === num1 * num2;
+    const isCorrect = parseInt(answer, 10) === num1 * num2;
 
     if (isCorrect) {
       setFeedback("correct");
       setScore((prev) => prev + 10);
+
+      // ✅ live update XP + health
+      dispatch({ type: "GAIN_XP", payload: XP_PER_CORRECT });
+      dispatch({ type: "UPDATE_HEALTH", payload: HEALTH_REWARD_CORRECT });
 
       setTimeout(() => {
         if (questionCount < 10) {
@@ -45,9 +55,12 @@ export default function MultiplicationPuzzle({ onSuccess }) {
           });
           onSuccess && onSuccess();
         }
-      }, 1000);
+      }, 800); // short delay to show "Correct!"
     } else {
       setFeedback("wrong");
+
+      // ❌ wrong → lose health
+      dispatch({ type: "UPDATE_HEALTH", payload: HEALTH_PENALTY_WRONG });
     }
   };
 
@@ -82,25 +95,26 @@ export default function MultiplicationPuzzle({ onSuccess }) {
         What is {num1} × {num2}?
       </div>
 
-      {/* Input */}
-      <input
-        className="border-2 border-gray-300 p-2 rounded text-center w-24 text-lg"
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        type="number"
-        placeholder="Answer"
-      />
+      {/* Input + Submit inside form so Enter works */}
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <input
+          className="border-2 border-gray-300 p-2 rounded text-center w-24 text-lg"
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
+          type="number"
+          placeholder="Answer"
+        />
 
-      {/* Submit Button */}
-      <div>
-        <button
-          onClick={handleSubmit}
-          className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded disabled:bg-gray-400"
-          disabled={answer === ""}
-        >
-          Submit
-        </button>
-      </div>
+        <div>
+          <button
+            type="submit"
+            className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded disabled:bg-gray-400"
+            disabled={answer === ""}
+          >
+            Submit
+          </button>
+        </div>
+      </form>
 
       {/* Feedback */}
       {feedback === "correct" && (

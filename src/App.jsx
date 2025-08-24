@@ -3,6 +3,12 @@ import Layout from "./components/Layout/Layout";
 import WorldMap from "./components/UI/WorldMap";
 import AdditionPuzzle from "./components/Puzzles/AdditionPuzzle";
 import SubtractionPuzzle from "./components/Puzzles/SubtractionPuzzle";
+import MultiplicationPuzzle from "./components/Puzzles/MultiplicationPuzzle";
+import GeometryPuzzle from "./components/Puzzles/GeometryPuzzle";
+import LogicPuzzle from "./components/Puzzles/LogicPuzzle";
+import DivisionPuzzle from "./components/Puzzles/DivisionPuzzle";
+import HomeFinal from "./components/Game/HomeFinal";
+
 import IntroScene from "./components/Game/IntroScene";
 import { PlayerProvider, useGame } from "./context/PlayerContext";
 
@@ -22,9 +28,6 @@ function GameApp() {
         <IntroScene onContinue={() => setStarted(true)} />
       ) : (
         <>
-          <div className="text-center text-xl mb-4 text-white">
-            Welcome, Math Knight! (XP: {xp})
-          </div>
 
           {!currentZone && <WorldMap onZoneSelect={setCurrentZone} />}
 
@@ -35,6 +38,30 @@ function GameApp() {
           {currentZone === "Subtraction Sanctuary" && (
             <SubtractionPuzzle onSuccess={handlePuzzleSuccess} />
           )}
+
+          {currentZone === "Multiplication Marsh" && (
+            <MultiplicationPuzzle onSuccess={handlePuzzleSuccess} />
+          )}
+
+          {currentZone === "Division Domain" && (
+            <DivisionPuzzle onSuccess={handlePuzzleSuccess} />
+          )}
+
+          {currentZone === "Geometry Gorge" && (
+            <GeometryPuzzle onSuccess={handlePuzzleSuccess} />
+          )}
+
+          {currentZone === "Logic Labyrinth" && (
+            <LogicPuzzle onSuccess={handlePuzzleSuccess} />
+          )}
+
+          {currentZone === "Home" && (
+          <HomeFinal onRestart={() => {
+          setStarted(false); // restart game
+          setCurrentZone(null);
+         }} />
+)}
+
         </>
       )}
     </Layout>
